@@ -38,6 +38,7 @@ Kĩ năng này hướng dẫn cách chuyển đổi các báo cáo nghiên cứu
 
 ## 2. Quy tắc Ngôn ngữ và Trình bày (Nova Hospital Standards)
 
+* **Tôn trọng tuyệt đối từ khóa của người dùng:** Khi tổng hợp và xử lý tài liệu kiến thức kỹ năng, bắt buộc phải giữ nguyên 100% các từ khóa, tên khái niệm, tên bước và thuật ngữ do người dùng cung cấp. Nghiêm cấm tự ý sửa đổi, thay thế hay biến tấu từ khóa của người dùng.
 * **Viết hoa sau số thứ tự:** Ký tự chữ cái đầu tiên đứng sau ký số thứ tự và dấu chấm/gạch đầu dòng bắt buộc phải viết hoa (ví dụ: `1. Lắng nghe`, `- Cơ chế...`).
 * **Viết thường từ chuyên ngành ở giữa câu:** Nghiêm cấm viết hoa ngẫu hứng từ ngữ chuyên ngành ở giữa câu. Các từ như `hạch hạnh nhân`, `vỏ não trước trán`, `bánh xe cảm xúc`, `thông điệp tôi`, `quá trình myelin hóa` phải viết thường khi đứng giữa câu.
 * **Độ dài câu ngắn gọn:** Tránh dùng câu phức nhiều vế gây khó hiểu cho học sinh cấp 2. Ưu tiên câu đơn, sử dụng các ký hiệu và công thức trực quan.

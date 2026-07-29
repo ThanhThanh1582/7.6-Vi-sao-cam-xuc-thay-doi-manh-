@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài 8.6: Thiết Lập Lá Chắn Bảo Vệ & Ranh Giới Cá Nhân - Nova Hospital</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0077b6;
+            --primary-light: #90e0ef;
+            --primary-dark: #03045e;
+            --secondary: #00a896;
+            --accent: #e63946;
+            --accent-yellow: #ffb703;
+            --bg-glass: rgba(255, 255, 255, 0.94);
+            --border-glass: rgba(0, 119, 182, 0.2);
+            --text-main: #1d3557;
+            --text-muted: #4a5568;
+            --sidebar-width: 290px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Outfit', 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #f0f8ff;
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(240, 248, 255, 0.92), rgba(224, 242, 254, 0.92)), url('assets/emergency_room_bg.png');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+        }
+
+        .app-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* SIDEBAR ĐIỀU HƯỚNG BÊN TRÁI */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid var(--border-glass);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 18px 14px;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            font-weight: 800;
+            font-size: 15px;
+            text-align: center;
+            border-bottom: 2px solid var(--secondary);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .sidebar-stage-group {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-stage-title {
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--secondary);
+            background: rgba(0, 168, 150, 0.08);
+            border-left: 3px solid var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .slide-list {
+            list-style: none;
+            padding: 4px 6px;
+        }
+
+        .slide-item {
+            padding: 8px 10px;
+            margin-bottom: 3px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            line-height: 1.3;
+            border: 1px solid transparent;
+        }
+
+        .slide-item:hover {
+            background: rgba(0, 119, 182, 0.08);
+            color: var(--primary);
+        }
+
+        .slide-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0, 119, 182, 0.2);
+        }
+
+        .slide-badge {
+            font-size: 9.5px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.08);
+            color: inherit;
+        }
+
+        .slide-item.active .slide-badge {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* PHẦN TRÌNH CHIẾU CHÍNH */
+        .presentation-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* HEADER THÔNG TIN */
+        .presentation-header {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 5;
+        }
+
+        .header-title {
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-stage-badge {
+            background: linear-gradient(135deg, var(--secondary), #2a9d8f);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* VIEWPORT SLIDE FRAME */
+        .slide-viewport {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide-frame {
+            width: 100%;
+            height: 100%;
+            max-width: 1150px;
+            max-height: 700px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(3, 4, 94, 0.12);
+            padding: 30px;
+            display: none;
+            flex-direction: column;
+            position: relative;
+            overflow-y: auto;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .slide-frame.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.99); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* CARDS TEMPLATES */
+        .info-card {
+            background: white;
+            border-radius: 16px;
+            padding: 22px;
+            border: 1px solid rgba(0, 119, 182, 0.12);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+            margin-bottom: 15px;
+        }
+
+        .info-card-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card-text {
+            font-size: 14px;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* TIMER WIDGET */
+        .timer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(230, 57, 70, 0.08);
+            border: 1px solid rgba(230, 57, 70, 0.2);
+            border-radius: 12px;
+            padding: 10px 18px;
+            margin-bottom: 15px;
+        }
+
+        .timer-display {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--accent);
+        }
+
+        /* CHECK ANSWER BUTTON (HITBOX >= 70PX) */
+        .btn-check-answer {
+            min-height: 70px;
+            min-width: 220px;
+            padding: 0 30px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 20px rgba(0, 119, 182, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            align-self: center;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .btn-check-answer:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 168, 150, 0.35);
+        }
+
+        /* GAME HITBOX CARDS (MIN-HEIGHT 70PX) */
+        .game-hitbox-card {
+            min-height: 75px;
+            background: white;
+            border: 2px solid rgba(0, 119, 182, 0.18);
+            border-radius: 12px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .game-hitbox-card:hover {
+            border-color: var(--primary);
+            background: rgba(0, 119, 182, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .game-hitbox-card.selected {
+            border-color: var(--secondary) !important;
+            background: rgba(0, 168, 150, 0.15) !important;
+            box-shadow: 0 0 15px rgba(0, 168, 150, 0.3);
+        }
+
+        /* MEDICAL RECORD CARD IN GAME 1 */
+        .patient-record-box {
+            background: white;
+            border: 2px solid rgba(0, 119, 182, 0.18);
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .record-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .record-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        /* HIGHLIGHTABLE TOKENS FOR GAME SLIDE 14 */
+        .word-token {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px 4px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .word-token:hover {
+            background: rgba(0, 119, 182, 0.15);
+        }
+
+        .word-token.highlighted {
+            background: var(--accent-yellow) !important;
+            color: var(--primary-dark) !important;
+            font-weight: 800;
+            box-shadow: 0 0 10px rgba(255, 183, 3, 0.6);
+        }
+
+        /* ARRANGER SLOTS FOR GAME SLIDE 21 */
+        .arranger-slot {
+            min-height: 70px;
+            border: 2px dashed rgba(0, 119, 182, 0.3);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .arranger-slot.filled {
+            border-style: solid;
+            border-color: var(--secondary);
+            background: rgba(0, 168, 150, 0.1);
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        /* STAMP EFFECT */
+        .stamp-box {
+            position: relative;
+            display: inline-block;
+        }
+
+        .red-stamp {
+            border: 5px double var(--accent);
+            color: var(--accent);
+            font-size: 28px;
+            font-weight: 900;
+            padding: 12px 30px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            transform: rotate(-12deg);
+            box-shadow: 0 0 20px rgba(230, 57, 70, 0.4);
+            display: none;
+            animation: stampPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .gold-stamp {
+            border: 5px double var(--accent-yellow);
+            color: var(--accent-yellow);
+            font-size: 28px;
+            font-weight: 900;
+            padding: 12px 30px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            transform: rotate(-8deg);
+            box-shadow: 0 0 20px rgba(255, 183, 3, 0.5);
+            display: none;
+            animation: stampPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .green-stamp {
+            border: 5px double var(--secondary);
+            color: var(--secondary);
+            font-size: 28px;
+            font-weight: 900;
+            padding: 12px 30px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            transform: rotate(-10deg);
+            box-shadow: 0 0 20px rgba(0, 168, 150, 0.4);
+            display: none;
+            animation: stampPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes stampPop {
+            from { transform: scale(3) rotate(-30deg); opacity: 0; }
+            to { transform: scale(1) rotate(-12deg); opacity: 1; }
+        }
+
+        /* SVG MATCHING CONTAINER */
+        .svg-matching-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            flex-grow: 1;
+            margin: 15px 0;
+        }
+
+        .svg-col {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 320px;
+            z-index: 2;
+        }
+
+        .node-item {
+            min-height: 70px;
+            background: white;
+            border: 2px solid rgba(0, 119, 182, 0.18);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13.5px;
+            font-weight: 600;
+        }
+
+        .node-item:hover, .node-item.active-node {
+            border-color: var(--primary);
+            background: rgba(0, 119, 182, 0.08);
+        }
+
+        .node-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        #svg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* FOOTER NAV */
+        .presentation-footer {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.9);
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+            z-index: 5;
+        }
+
+        .nav-btn {
+            min-height: 44px;
+            padding: 0 20px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        .slide-counter {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .slide-section-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .slide-section-sub {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        /* PATIENT GRID */
+        .patient-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .patient-card {
+            background: white;
+            border: 2px solid rgba(0, 119, 182, 0.15);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .patient-card:hover {
+            border-color: var(--secondary);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 168, 150, 0.15);
+        }
+
+        .manga-bubble {
+            background: white;
+            border: 3px solid var(--primary-dark);
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+            max-width: 750px;
+            margin: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        /* MODAL POPUP */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div>BÀI 8.6: RANH GIỚI CÁ NHÂN</div>
+            <div style="font-size: 11px; opacity: 0.8; margin-top: 2px;">BÁC SĨ NOVA HOSPITAL</div>
+        </div>
+        <div id="sidebar-content"></div>
+    </div>
+
+    <!-- MAIN PRESENTATION AREA -->
+    <div class="presentation-area">
+        
+        <!-- HEADER -->
+        <div class="presentation-header">
+            <div class="header-title">
+                <span id="current-slide-code" style="color: var(--primary); font-weight: 900;">MĐ01</span>
+                <span>•</span>
+                <span id="current-slide-title-header">Tiêu đề slide</span>
+            </div>
+            <div class="header-stage-badge" id="current-stage-badge">GIAI ĐOẠN 1: MỞ KHÓA CA BỆNH</div>
+        </div>
+
+        <!-- VIEWPORT SLIDES -->
+        <div class="slide-viewport" id="slide-viewport-container"></div>
+
+        <!-- FOOTER -->
+        <div class="presentation-footer">
+            <button class="nav-btn" onclick="prevSlide()">◀ SLIDE TRƯỚC</button>
+            <div class="slide-counter" id="slide-counter">SLIDE 1 / 26</div>
+            <button class="nav-btn" onclick="nextSlide()">SLIDE TIẾP ▶</button>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- MODAL DIALOG FOR PATIENT CASES -->
+<div class="modal-overlay" id="patient-modal">
+    <div class="modal-box">
+        <div style="font-size: 50px;" id="modal-patient-icon">🎒</div>
+        <h3 style="font-size: 22px; color: var(--primary-dark); margin: 10px 0;" id="modal-patient-name">Tên Bệnh Nhân</h3>
+        <p style="font-size: 15px; color: var(--text-muted); line-height: 1.6;" id="modal-patient-desc">Mô tả bệnh án</p>
+        <button class="nav-btn" style="margin-top: 20px; padding: 10px 25px;" onclick="closePatientModal()">ĐÓNG HỒ SƠ BỆNH ÁN</button>
+    </div>
+</div>
+
+<script>
+    // EXACT 26 SLIDES MASTER CURRICULUM FOLLOWING LESSON DESIGN 8.6
+    const slidesData = [
+        { id: 1, code: "MĐ01", stage: "PHẦN MỞ ĐẦU BÀI HỌC", title: "Thiết Lập Lá Chắn Bảo Vệ & Ranh Giới Cá Nhân", type: "slide_1" },
+        { id: 2, code: "MT01", stage: "PHẦN MỞ ĐẦU BÀI HỌC", title: "Mục tiêu Bài học (3 Trụ cột)", type: "slide_2" },
+        { id: 3, code: "QS01", stage: "PHẦN MỞ ĐẦU BÀI HỌC", title: "Câu hỏi Cốt lõi (Big Question)", type: "slide_3" },
+        { id: 4, code: "PV01", stage: "PHẦN MỞ ĐẦU BÀI HỌC", title: "Phân vai Bác sĩ Tập sự Nova Hospital", type: "slide_4" },
+        { id: 5, code: "BĐ01", stage: "GIAI ĐOẠN 1: MỞ KHÓA CA BỆNH", title: "Báo động Đỏ: Cảnh báo Lấn sân Ranh giới (05:00)", type: "slide_5" },
+        { id: 6, code: "CB01", stage: "GIAI ĐOẠN 1: MỞ KHÓA CA BỆNH", title: "Chuẩn bị Bộ thẻ Đạo cụ 4 màu", type: "slide_6" },
+        { id: 7, code: "HD01", stage: "GIAI ĐOẠN 1: MỞ KHÓA CA BỆNH", title: "Quy trình Khám bệnh 3 bước", type: "slide_7" },
+        { id: 8, code: "TH01", stage: "GIAI ĐOẠN 1: MỞ KHÓA CA BỆNH", title: "Game Radar Ranh giới 3 Bệnh nhân (A, Nhi, Hùng)", type: "slide_8" },
+        { id: 9, code: "ĐA01", stage: "GIAI ĐOẠN 2: NHẬN HỒ SƠ BỆNH ÁN", title: "Tổng kết Vi phạm Ranh giới Cá nhân Thường gặp (04:00)", type: "slide_9" },
+        { id: 10, code: "NV01", stage: "GIAI ĐOẠN 2: NHẬN HỒ SƠ BỆNH ÁN", title: "Patient Grid Ca bệnh Su, Minh Anh, Kem, Bảo Vy", type: "slide_10" },
+        { id: 11, code: "GT01", stage: "GIAI ĐOẠN 3: KHÁM BỆNH", title: "Khám bệnh Lâm sàng Ranh giới (08:00)", type: "slide_11" },
+        { id: 12, code: "CB01", stage: "GIAI ĐOẠN 3: KHÁM BỆNH", title: "Chuẩn bị Phiếu khám & Bút dạ quang", type: "slide_12" },
+        { id: 13, code: "HD01", stage: "GIAI ĐOẠN 3: KHÁM BỆNH", title: "Quy trình Gạch chân Dấu hiệu Sinh lý", type: "slide_13" },
+        { id: 14, code: "TH01", stage: "GIAI ĐOẠN 3: KHÁM BỆNH", title: "Game Touch-to-Highlight Từ khóa Triệu chứng", type: "slide_14" },
+        { id: 15, code: "CB01", stage: "GIAI ĐOẠN 4: CHẨN ĐOÁN", title: "Chuẩn bị Phiếu chẩn đoán 3 Khu vực Ranh giới (06:00)", type: "slide_15" },
+        { id: 16, code: "TB01", stage: "GIAI ĐOẠN 5: HỘI CHẨN", title: "Phiên Hội chẩn Kíp trực & Bóc tách Virus Guilt-trip (05:00)", type: "slide_16" },
+        { id: 17, code: "ĐA01", stage: "GIAI ĐOẠN 5: HỘI CHẨN", title: "Đáp án Chẩn đoán 3 Khu vực & RED STAMP", type: "slide_17" },
+        { id: 18, code: "GT01", stage: "GIAI ĐOẠN 6: KÊ ĐƠN & CHĂM SÓC", title: "Giới thiệu Phác đồ Từ chối Quyết đoán (10:00)", type: "slide_18" },
+        { id: 19, code: "CB01", stage: "GIAI ĐOẠN 6: KÊ ĐƠN & CHĂM SÓC", title: "Chuẩn bị Sổ tay Kê đơn & Đồng hồ", type: "slide_19" },
+        { id: 20, code: "HD01", stage: "GIAI ĐOẠN 6: KÊ ĐƠN & CHĂM SÓC", title: "Quy trình Công thức Thông điệp Tôi", type: "slide_20" },
+        { id: 21, code: "TH01", stage: "GIAI ĐOẠN 6: KÊ ĐƠN & CHĂM SÓC", title: "Game Arranger Phác đồ 5 bước (Interactive)", type: "slide_21" },
+        { id: 22, code: "ĐA01", stage: "GIAI ĐOẠN 6: KÊ ĐƠN & CHĂM SÓC", title: "Đáp án Kê đơn & GREEN STAMP", type: "slide_22" },
+        { id: 23, code: "ĐA01", stage: "GIAI ĐOẠN 7: NHẬT KÝ BÁC SĨ", title: "Game SVG Tap-to-Connect T-Chart Y đức (04:00)", type: "slide_23" },
+        { id: 24, code: "CK01", stage: "GIAI ĐOẠN 7: NHẬT KÝ BÁC SĨ", title: "Bản Cam kết Hành động Y đức & GOLD STAMP", type: "slide_24" },
+        { id: 25, code: "VD01", stage: "GIAI ĐOẠN 8: THÓI QUEN KHỎE MẠNH", title: "Cấp Certificate Bác sĩ Nội trú & Confetti (03:00)", type: "slide_25" },
+        { id: 26, code: "VD01", stage: "GIAI ĐOẠN 8: THÓI QUEN KHỎE MẠNH", title: "Vinh danh Bác sĩ Chính thức & Bài tập về nhà", type: "slide_26" }
+    ];
+
+    let currentSlideIdx = 0;
+    let timerInterval = null;
+    let audioCtx = null;
+
+    // RENDER SLIDES
+    function renderSlides() {
+        const container = document.getElementById('slide-viewport-container');
+        container.innerHTML = '';
+
+        slidesData.forEach((s, idx) => {
+            const frame = document.createElement('div');
+            frame.className = `slide-frame ${idx === currentSlideIdx ? 'active' : ''}`;
+            frame.id = `slide-${s.id}`;
+            frame.innerHTML = generateSlideHtml(s);
+            container.appendChild(frame);
+        });
+    }
+
+    // HTML GENERATOR
+    function generateSlideHtml(s) {
+        switch(s.type) {
+            case "slide_1":
+                return `
+                    <div style="text-align: center; margin: auto 0;">
+                        <div style="font-size: 18px; font-weight: 800; color: var(--secondary); letter-spacing: 3px; margin-bottom: 10px;">BÀI 8.6 • CONCEPT BÁC SĨ NOVA HOSPITAL</div>
+                        <h1 style="font-size: 32px; font-weight: 900; color: var(--primary-dark); margin-bottom: 15px; text-transform: uppercase;">THIẾT LẬP LÁ CHẤN BẢO VỆ & RANH GIỚI CÁ NHÂN</h1>
+                        <p style="font-size: 15.5px; color: var(--text-muted); max-width: 700px; margin: 0 auto 30px auto; line-height: 1.6;">Quy trình 8 giai đoạn tích cực theo chuẩn Công văn 5512 Bộ GD&ĐT — Nhập vai Bác sĩ nội trú tư vấn bảo vệ ranh giới cá nhân.</p>
+                        <button class="nav-btn" style="padding: 14px 35px; font-size: 16px;" onclick="nextSlide()">BẮT ĐẦU BÀI HỌC 🛡️</button>
+                    </div>
+                `;
+            case "slide_2":
+                return `
+                    <div class="slide-section-title">MỤC TIÊU BÀI HỌC (3 TRỤ CỘT)</div>
+                    <div class="slide-section-sub">Phân rã mục tiêu Kiến thức - Kỹ năng - Thái độ theo CV 5512.</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: auto 0;">
+                        <div class="info-card" style="border-top: 4px solid var(--primary);">
+                            <div class="info-card-title">🧪 1. KIẾN THỨC</div>
+                            <div class="info-card-text">
+                                • Nhận biết 3 khu vực ranh giới cá nhân (Thân thể & Vật lý, Cảm xúc & Tinh thần, Thông tin & Riêng tư).<br>
+                                • Hiểu cơ chế hạch hạnh nhân kích hoạt khi ranh giới bị xâm phạm và Virus thao túng cảm xúc (guilt-trip).
+                            </div>
+                        </div>
+                        <div class="info-card" style="border-top: 4px solid var(--secondary);">
+                            <div class="info-card-title">🩹 2. KỸ NĂNG</div>
+                            <div class="info-card-text">
+                                • Áp dụng Quy trình 3 bước (Bước 1 - Lắng nghe cơ thể, Bước 2 - Đánh giá ranh giới, Bước 3 - Lên tiếng quyết đoán).<br>
+                                • Thực hành từ chối quyết đoán bằng thông điệp tôi.
+                            </div>
+                        </div>
+                        <div class="info-card" style="border-top: 4px solid var(--accent-yellow);">
+                            <div class="info-card-title">❤️ 3. THÁI ĐỘ</div>
+                            <div class="info-card-text">
+                                • Tôn trọng lá chắn bảo vệ của bản thân và bạn bè.<br>
+                                • Kiên quyết từ bỏ phản ứng né tránh (cười trừ) hoặc bốc đồng (gây hấn).
+                            </div>
+                        </div>
+                    </div>
+                `;
+            case "slide_3":
+                return `
+                    <div style="text-align: center; margin: auto 0;">
+                        <div class="manga-bubble">
+                            <div style="font-size: 65px; margin-bottom: 10px;">❓</div>
+                            <div style="font-size: 16px; font-weight: 800; color: var(--secondary); letter-spacing: 2px; margin-bottom: 8px;">CÂU HỎI CỐT LÕI (BIG QUESTION)</div>
+                            <h2 style="font-size: 24px; font-weight: 800; color: var(--primary-dark); line-height: 1.5;">Làm thế nào để bảo vệ lá chắn ranh giới cá nhân trước hành vi lấn sân mà vẫn giữ được sự tôn trọng và tình bạn bền vững?</h2>
+                        </div>
+                    </div>
+                `;
+            case "slide_4":
+                return `
+                    <div class="slide-section-title">PHÂN VAI BÁC SĨ TẬP SỰ</div>
+                    <div class="info-card" style="text-align: center; padding: 35px; margin: auto 0;">
+                        <div style="font-size: 70px; margin-bottom: 12px;">🛡️🩺</div>
+                        <h3 style="font-size: 22px; color: var(--primary-dark); margin-bottom: 10px;">NHẬP VAI BÁC SĨ NỘI TRÚ NOVA HOSPITAL</h3>
+                        <p style="font-size: 15px; color: var(--text-muted); line-height: 1.7; max-width: 750px; margin: 0 auto;">Các em sẽ đóng vai kíp trực y tế Nova Hospital tiếp nhận các ca cấp cứu ranh giới cá nhân bị đe dọa. Hãy dùng kiến thức sinh lý và từ chối quyết đoán bằng thông điệp tôi để thiết lập lá chắn bảo vệ nhé!</p>
+                    </div>
+                `;
+            case "slide_5":
+                return `
+                    <div class="timer-row">
+                        <span style="font-weight: 800; color: var(--accent);">🚨 GIAI ĐOẠN 1: MỞ KHÓA CA BỆNH (5 PHÚT)</span>
+                        <span class="timer-display" id="timer-val-5">10s</span>
+                    </div>
+                    <div style="text-align: center; margin: auto 0;">
+                        <div style="font-size: 90px; margin-bottom: 12px; animation: pulse 1s infinite alternate;">🚨</div>
+                        <h2 style="font-size: 24px; font-weight: 900; color: var(--accent); margin-bottom: 10px;">CẢNH BÁO LẤN SÂN: RANH GIỚI BỊ XÂM PHẠM!</h2>
+                        <p style="font-size: 15px; color: var(--text-muted); max-width: 650px; margin: 0 auto 20px auto; line-height: 1.6;">Hệ thống Radar Nova Hospital phát hiện các ca bệnh học sinh bị xâm phạm khu vực ranh giới cá nhân!</p>
+                        <button class="btn-check-answer" onclick="playSiren(); startTimer(5, 10);">📡 KÍCH HOẠT CÒI HÚ VÀ RADAR QUÉT BÁO ĐỘNG</button>
+                    </div>
+                `;
+            case "slide_6":
+                return `
+                    <div class="slide-section-title">CHUẨN BỊ BỘ THẺ ĐẠO CỤ KÍP TRỰC</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: auto 0;">
+                        <div class="info-card">
+                            <div class="info-card-title">🛠️ BỘ THẺ MÀU ĐẠO CỤ</div>
+                            <ul style="padding-left: 20px; line-height: 1.8; color: var(--text-muted); font-size: 14px;">
+                                <li>Thẻ Đỏ (Thân thể & Vật lý).</li>
+                                <li>Thẻ Xanh (Cảm xúc & Tinh thần).</li>
+                                <li>Thẻ Vàng (Thông tin & Riêng tư).</li>
+                                <li>Thẻ 👾 (Virus thao túng cảm xúc - guilt-trip).</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-card-title">👥 HÌNH THỨC TỔ CHỨC</div>
+                            <ul style="padding-left: 20px; line-height: 1.8; color: var(--text-muted); font-size: 14px;">
+                                <li>Phân chia kíp trực 4 bác sĩ tập sự.</li>
+                                <li>Phân công Trạm trưởng nhóm điều phối.</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            case "slide_7":
+                return `
+                    <div class="slide-section-title">QUY TRÌNH KHÁM BỆNH 3 BƯỚC</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: auto 0;">
+                        <div class="info-card" style="text-align: center;">
+                            <div style="font-size: 32px; color: var(--primary); font-weight: 900;">Bước 1</div>
+                            <div class="info-card-text" style="margin-top: 8px;">Bước 1 - Lắng nghe cơ thể (Observe).</div>
+                        </div>
+                        <div class="info-card" style="text-align: center;">
+                            <div style="font-size: 32px; color: var(--secondary); font-weight: 900;">Bước 2</div>
+                            <div class="info-card-text" style="margin-top: 8px;">Bước 2 - Đánh giá ranh giới (Evaluate).</div>
+                        </div>
+                        <div class="info-card" style="text-align: center;">
+                            <div style="font-size: 32px; color: var(--accent); font-weight: 900;">Bước 3</div>
+                            <div class="info-card-text" style="margin-top: 8px;">Bước 3 - Lên tiếng quyết đoán (Respond).</div>
+                        </div>
+                    </div>
+                `;
+            case "slide_8":
+                return `
+                    <div class="timer-row">
+                        <span>THỜI GIAN SƠ CỨU RADAR (GIAI ĐOẠN 1):</span>
+                        <span class="timer-display" id="timer-val-8">05:00</span>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-bottom: 8px; text-transform: uppercase;">
+                        📋 HỒ SƠ BỆNH ÁN 3 BỆNH NHÂN SƠ CỨU (CHỌN KHU VỰC BỊ XÂM PHẠM):
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 10px;">
+                        <div class="patient-record-box">
+                            <div class="record-title">🎒 Bệnh nhân A</div>
+                            <div class="record-desc">"Bạn A bị tự ý lấy balo, lục tìm đồ dùng cá nhân khi chưa được cho phép."</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                                <div class="game-hitbox-card" style="min-height: 45px; font-size: 12px;" onclick="selectPatientChoice(this, 'A', 'vật lý')">🔴 Vật lý</div>
+                                <div class="game-hitbox-card" style="min-height: 45px; font-size: 12px;" onclick="selectPatientChoice(this, 'A', 'khác')">🔵 Cảm xúc</div>
+                            </div>
+                        </div>
+                        <div class="patient-record-box">
+                            <div class="record-title">🔐 Bệnh nhân Nhi</div>
+                            <div class="record-desc">"Nhi bị ép phải đưa mật khẩu tài khoản mạng xã hội để kiểm tra tin nhắn riêng tư."</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                                <div class="game-hitbox-card" style="min-height: 45px; font-size: 12px;" onclick="selectPatientChoice(this, 'Nhi', 'thông tin')">🟡 Thông tin</div>
+                                <div class="game-hitbox-card" style="min-height: 45px; font-size: 12px;" onclick="selectPatientChoice(this, 'Nhi', 'khác')">🔴 Vật lý</div>
+                            </div>
+                        </div>
+                        <div class="patient-record-box">
+                            <div class="record-title">👾 Bệnh nhân Hùng</div>
+                            <div class="record-desc">"Hùng bị trêu ngoại hình và bị kêu 'đùa tí làm gì căng', làm Hùng cảm thấy có lỗi."</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                                <div class="game-hitbox-card" style="min-height: 45px; font-size: 12px;" onclick="selectPatientChoice(this, 'Hùng', 'thao túng')">👾 Guilt-trip</div>
+                                <div class="game-hitbox-card" style="min-height: 45px; font-size: 12px;" onclick="selectPatientChoice(this, 'Hùng', 'khác')">🟡 Thông tin</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-check-answer" onclick="checkAnswerSlide8()">🔍 KIỂM TRA ĐÁP ÁN SƠ CỨU A, NHI, HÙNG</button>
+                `;
+            case "slide_9":
+                return `
+                    <div class="slide-section-title">TỔNG KẾT CÁC VI PHẠM RANH GIỚI CÁ NHÂN THƯỜNG GẶP (GIAI ĐOẠN 2 - 4 PHÚT)</div>
+                    <div class="slide-section-sub">Đút túi kết quả phân loại chuẩn y khoa từ 3 ca bệnh nhân A, Nhi, Hùng.</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: auto 0;">
+                        <div class="info-card" style="border-top: 4px solid var(--accent);">
+                            <div class="info-card-title">🎒 1. Thân thể & Vật lý (Ca A)</div>
+                            <div class="info-card-text">
+                                • Tự ý chạm vào cơ thể khi chưa có sự đồng ý.<br>
+                                • Lục balo, tự ý lấy đồ dùng cá nhân.
+                            </div>
+                        </div>
+                        <div class="info-card" style="border-top: 4px solid var(--accent-yellow);">
+                            <div class="info-card-title">🔐 2. Thông tin & Riêng tư (Ca Nhi)</div>
+                            <div class="info-card-text">
+                                • Ép đưa mật khẩu mạng xã hội.<br>
+                                • Đọc lén nhật ký, tin nhắn riêng tư.
+                            </div>
+                        </div>
+                        <div class="info-card" style="border-top: 4px solid var(--secondary);">
+                            <div class="info-card-title">👾 3. Cảm xúc & Guilt-trip (Ca Hùng)</div>
+                            <div class="info-card-text">
+                                • Lấy ngoại hình ra đùa giỡn trước tập thể.<br>
+                                • Dụ dỗ, ép buộc làm em thấy có lỗi.
+                            </div>
+                        </div>
+                    </div>
+                `;
+            case "slide_10":
+                return `
+                    <div class="slide-section-title">PATIENT GRID CA BỆNH NHÂN (CHẠM ĐỂ XEM HỒ SƠ)</div>
+                    <div class="patient-grid">
+                        <div class="patient-card" onclick="openPatientModal('🎒', 'Bệnh nhân Su', 'Su bị bạn cùng lớp tự ý lấy balo và lục tìm tẩy mà không hề xin phép trước.')">
+                            <div style="font-size: 36px;">🎒</div>
+                            <strong>Su</strong>
+                            <p style="font-size: 11.5px; color: var(--text-muted);">Lục balo tự ý</p>
+                        </div>
+                        <div class="patient-card" onclick="openPatientModal('🔐', 'Bệnh nhân Minh Anh', 'Minh Anh bị bạn thân ép phải đưa mật khẩu tài khoản mạng xã hội để kiểm tra tin nhắn.')">
+                            <div style="font-size: 36px;">🔐</div>
+                            <strong>Minh Anh</strong>
+                            <p style="font-size: 11.5px; color: var(--text-muted);">Ép đưa mật khẩu</p>
+                        </div>
+                        <div class="patient-card" onclick="openPatientModal('💬', 'Bệnh nhân Kem', 'Kem bị các bạn đem ngoại hình ra làm trò đùa trước tập thể và kêu đùa tí làm gì căng.')">
+                            <div style="font-size: 36px;">💬</div>
+                            <strong>Kem</strong>
+                            <p style="font-size: 11.5px; color: var(--text-muted);">Đùa giỡn ngoại hình</p>
+                        </div>
+                        <div class="patient-card" onclick="openPatientModal('👾', 'Bệnh nhân Bảo Vy', 'Bảo Vy bị người khác guilt-trip ép cho mượn sổ nhật ký cá nhân nếu không sẽ nghỉ chơi.')">
+                            <div style="font-size: 36px;">👾</div>
+                            <strong>Bảo Vy</strong>
+                            <p style="font-size: 11.5px; color: var(--text-muted);">Thao túng cảm xúc</p>
+                        </div>
+                    </div>
+                `;
+            case "slide_11":
+                return `
+                    <div class="slide-section-title">GIAI ĐOẠN 3: KHÁM BỆNH LÂM SÀNG (8 PHÚT)</div>
+                    <div class="info-card" style="text-align: center; padding: 30px; margin: auto 0;">
+                        <div style="font-size: 60px; margin-bottom: 10px;">🩺🔍</div>
+                        <h3 style="color: var(--primary-dark);">KHÁM BỆNH BÓC TÁCH DẤU HIỆU RANH GIỚI BỊ XÂM PHẠM</h3>
+                    </div>
+                `;
+            case "slide_12":
+                return `
+                    <div class="slide-section-title">CHUẨN BỊ KHÁM BỆNH GIAI ĐOẠN 3</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: auto 0;">
+                        <div class="info-card">
+                            <div class="info-card-title">🛠️ DỤNG CỤ</div>
+                            <p style="font-size: 14px; color: var(--text-muted);">4 hồ sơ ca bệnh, phiếu khám bảng giấy & bút dạ quang.</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-card-title">👥 TỔ CHỨC</div>
+                            <p style="font-size: 14px; color: var(--text-muted);">Thảo luận nhóm 4 bác sĩ kíp trực y tế.</p>
+                        </div>
+                    </div>
+                `;
+            case "slide_13":
+                return `
+                    <div class="slide-section-title">QUY TRÌNH GẠCH CHÂN DẤU HIỆU SINH LÝ</div>
+                    <div class="info-card" style="margin: auto 0; padding: 25px;">
+                        <ol style="padding-left: 20px; line-height: 1.8; color: var(--text-muted); font-size: 14.5px;">
+                            <li>Đọc kỹ hồ sơ ca bệnh bị lấn sân ranh giới.</li>
+                            <li>Gạch chân từ khóa <strong>triệu chứng sinh lý</strong> (tim đập nhanh, căng cơ, muốn lùi lại).</li>
+                            <li>Gạch chân hành vi <strong>Virus thao túng cảm xúc (guilt-trip)</strong>.</li>
+                        </ol>
+                    </div>
+                `;
+            case "slide_14":
+                return `
+                    <div class="timer-row">
+                        <span>THỜI GIAN KHÁM BỆNH LÂM SÀNG (GIAI ĐOẠN 3):</span>
+                        <span class="timer-display" id="timer-val-14">08:00</span>
+                    </div>
+                    <div class="info-card" style="padding: 22px;">
+                        <h4 style="color: var(--primary-dark); margin-bottom: 12px;">CHẠM VÀO TỪ KHÓA ĐỂ GẠCH CHÂN VÀNG NEON TRIỆU CHỨNG:</h4>
+                        <div style="font-size: 16px; line-height: 2.2; color: var(--text-main);">
+                            <span class="word-token" onclick="toggleToken(this)">Khi ranh giới bị xâm phạm,</span>
+                            <span class="word-token" onclick="toggleToken(this)">nạn nhân cảm thấy</span>
+                            <span class="word-token" id="token-target-1" onclick="toggleToken(this)">tim đập nhanh</span>
+                            <span class="word-token" id="token-target-2" onclick="toggleToken(this)">căng cơ toàn thân</span>
+                            <span class="word-token" id="token-target-3" onclick="toggleToken(this)">muốn lùi lại xa</span>
+                            <span class="word-token" onclick="toggleToken(this)">và bị đối phương</span>
+                            <span class="word-token" id="token-target-4" onclick="toggleToken(this)">guilt-trip làm cho cảm thấy có lỗi</span>
+                        </div>
+                    </div>
+                    <button class="btn-check-answer" onclick="checkAnswerSlide14()">🔍 KIỂM TRA ĐÁP ÁN KHÁM BỆNH</button>
+                `;
+            case "slide_15":
+                return `
+                    <div class="slide-section-title">CHUẨN BỊ CHẨN ĐOÁN (GIAI ĐOẠN 4 - 6 PHÚT)</div>
+                    <div class="info-card" style="margin: auto 0; padding: 25px;">
+                        <h3 style="color: var(--primary-dark); margin-bottom: 10px;">📋 PHÂN LOẠI 3 KHU VỰC RANH GIỚI CÁ NHÂN:</h3>
+                        <p style="font-size: 14.5px; color: var(--text-muted); line-height: 1.7;">1. Thân thể & Vật lý | 2. Cảm xúc & Tinh thần | 3. Thông tin & Riêng tư. Chuẩn bị phiếu chẩn đoán bảng giấy.</p>
+                    </div>
+                `;
+            case "slide_16":
+                return `
+                    <div class="slide-section-title">GIAI ĐOẠN 5: PHIÊN HỘI CHẨN KÍP TRỰC (5 PHÚT)</div>
+                    <div class="info-card" style="text-align: center; padding: 30px; margin: auto 0;">
+                        <div style="font-size: 55px; margin-bottom: 10px;">🗣️📢</div>
+                        <h3 style="color: var(--primary-dark); font-size: 20px; margin-bottom: 8px;">ĐẠI DIỆN KÍP TRỰC BÁO CÁO PHIẾU CHẨN ĐOÁN PHẢN BIỆN</h3>
+                        <p style="color: var(--text-muted); font-size: 14px;">Bóc tách 3 khu vực ranh giới cá nhân và nhận diện Virus thao túng cảm xúc (guilt-trip).</p>
+                    </div>
+                `;
+            case "slide_17":
+                return `
+                    <div class="slide-section-title">ĐÁP ÁN CHẨN ĐOÁN 3 KHU VỰC & RED STAMP</div>
+                    <div style="text-align: center; margin: auto 0;">
+                        <div class="info-card" style="max-width: 750px; margin: 0 auto 20px auto; text-align: left;">
+                            <strong style="color: var(--primary);">Đáp án chẩn đoán:</strong> Thân thể & Vật lý (đồ dùng cá nhân), Cảm xúc & Tinh thần (an toàn tâm lý), Thông tin & Riêng tư (mật khẩu, tin nhắn).
+                        </div>
+                        <div class="stamp-box">
+                            <div class="red-stamp" id="red-stamp-el">ĐÃ PHÊ DUYỆT</div>
+                        </div>
+                        <br><br>
+                        <button class="btn-check-answer" onclick="triggerRedStamp()">📌 ĐÓNG DẤU RED STAMP ĐÃ PHÊ DUYỆT</button>
+                    </div>
+                `;
+            case "slide_18":
+                return `
+                    <div class="slide-section-title">GIAI ĐOẠN 6: KÊ ĐƠN & CHĂM SÓC (10 PHÚT)</div>
+                    <div class="info-card" style="text-align: center; padding: 30px; margin: auto 0;">
+                        <div style="font-size: 60px; margin-bottom: 10px;">💊💬</div>
+                        <h3 style="color: var(--primary-dark);">KÊ ĐƠN PHÁC ĐỒ TỪ CHỐI QUYẾT ĐOÁN BẰNG THÔNG ĐIỆP TÔI</h3>
+                    </div>
+                `;
+            case "slide_19":
+                return `
+                    <div class="slide-section-title">CHUẨN BỊ KÊ ĐƠN PHÁC ĐỒ</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: auto 0;">
+                        <div class="info-card">
+                            <div class="info-card-title">🛠️ DỤNG CỤ</div>
+                            <p style="font-size: 14px; color: var(--text-muted);">Sổ tay kê đơn, bút màu, đồng hồ bấm giờ.</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-card-title">👥 HÌNH THỨC</div>
+                            <p style="font-size: 14px; color: var(--text-muted);">Thiết lập phác đồ từ chối quyết đoán bằng thông điệp tôi.</p>
+                        </div>
+                    </div>
+                `;
+            case "slide_20":
+                return `
+                    <div class="slide-section-title">QUY TRÌNH CÔNG THỨC THÔNG ĐIỆP TÔI</div>
+                    <div class="info-card" style="margin: auto 0; padding: 25px; border-color: var(--secondary);">
+                        <div style="font-size: 18px; font-weight: 800; color: var(--secondary); text-align: center; line-height: 1.6;">
+                            "Mình cảm thấy [cảm xúc] + khi bạn [hành động của bạn] + vì [lý do] + mình mong bạn [yêu cầu thay đổi hành vi]."
+                        </div>
+                    </div>
+                `;
+            case "slide_21":
+                return `
+                    <div class="timer-row">
+                        <span>THỜI GIAN KÊ ĐƠN PHÁC ĐỒ (GIAI ĐOẠN 6):</span>
+                        <span class="timer-display" id="timer-val-21">05:00</span>
+                    </div>
+                    <div class="info-card" style="padding: 18px;">
+                        <h4 style="color: var(--primary-dark); margin-bottom: 10px;">CHỌN CÁC BƯỚC ĐỂ SẮP XẾP VÀO KHUNG PHÁC ĐỒ 5 BƯỚC:</h4>
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px;">
+                            <div class="game-hitbox-card" id="step-btn-1" onclick="selectArrangerStep(this, 'Bước 1 - Lắng nghe cơ thể (Observe)')">1. Lắng nghe cơ thể</div>
+                            <div class="game-hitbox-card" id="step-btn-2" onclick="selectArrangerStep(this, 'Bước 2 - Đánh giá ranh giới (Evaluate)')">2. Đánh giá ranh giới</div>
+                            <div class="game-hitbox-card" id="step-btn-3" onclick="selectArrangerStep(this, 'Bước 3 - Lên tiếng quyết đoán (Respond)')">3. Lên tiếng quyết đoán</div>
+                            <div class="game-hitbox-card" id="step-btn-4" onclick="selectArrangerStep(this, 'Bước 4 - Thở 4-7-8 hạ nhịp tim')">4. Thở 4-7-8</div>
+                            <div class="game-hitbox-card" id="step-btn-5" onclick="selectArrangerStep(this, 'Bước 5 - Nói thông điệp tôi')">5. Thông điệp tôi</div>
+                        </div>
+                        <div id="arranger-slots-container">
+                            <div class="arranger-slot" onclick="fillArrangerSlot(this, 1)">Slot 1: Chạm chọn bước 1 tại đây</div>
+                            <div class="arranger-slot" onclick="fillArrangerSlot(this, 2)">Slot 2: Chạm chọn bước 2 tại đây</div>
+                            <div class="arranger-slot" onclick="fillArrangerSlot(this, 3)">Slot 3: Chạm chọn bước 3 tại đây</div>
+                        </div>
+                    </div>
+                    <button class="btn-check-answer" onclick="checkAnswerSlide21()">🧪 KIỂM TRA PHÁC ĐỒ KÊ ĐƠN</button>
+                `;
+            case "slide_22":
+                return `
+                    <div class="slide-section-title">ĐÁP ÁN KÊ ĐƠN & GREEN STAMP</div>
+                    <div style="text-align: center; margin: auto 0;">
+                        <div class="info-card" style="max-width: 750px; margin: 0 auto 20px auto; text-align: left;">
+                            <strong style="color: var(--secondary);">Đơn thuốc chuẩn:</strong> Áp dụng Quy trình 3 bước (Observe -> Evaluate -> Respond) và lên tiếng bằng công thức thông điệp tôi từ chối kiên định, lịch sự.
+                        </div>
+                        <div class="stamp-box">
+                            <div class="green-stamp" id="green-stamp-el">ĐẠT CHUẨN ĐIỀU HÒA</div>
+                        </div>
+                        <br><br>
+                        <button class="btn-check-answer" onclick="triggerGreenStamp()">🟢 ĐÓNG DẤU ĐẠT CHUẨN ĐIỀU HÒA</button>
+                    </div>
+                `;
+            case "slide_23":
+                return `
+                    <div class="slide-section-title">GIAI ĐOẠN 7: GAME T-CHART SVG TAP-TO-CONNECT Y ĐỨC (4 PHÚT)</div>
+                    <div class="svg-matching-container">
+                        <svg id="svg-canvas"></svg>
+                        <div class="svg-col" id="col-left">
+                            <div class="node-item" id="left-1" onclick="handleSvgTap('left-1')">
+                                <span>Né tránh, cười trừ thụ động</span>
+                                <div class="node-dot"></div>
+                            </div>
+                            <div class="node-item" id="left-2" onclick="handleSvgTap('left-2')">
+                                <span>Từ chối quyết đoán bằng thông điệp tôi</span>
+                                <div class="node-dot"></div>
+                            </div>
+                        </div>
+                        <div class="svg-col" id="col-right">
+                            <div class="node-item" id="right-1" onclick="handleSvgTap('right-1')">
+                                <div class="node-dot"></div>
+                                <span>❌ Phản ứng rủi ro</span>
+                            </div>
+                            <div class="node-item" id="right-2" onclick="handleSvgTap('right-2')">
+                                <div class="node-dot"></div>
+                                <span>✅ Quyết định tối ưu</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-check-answer" onclick="checkAnswerSlide23()">⚡ KIỂM TRA T-CHART Y ĐỨC</button>
+                `;
+            case "slide_24":
+                return `
+                    <div class="slide-section-title">BẢN CAM KẾT HÀNH ĐỘNG Y ĐỨC</div>
+                    <div style="text-align: center; margin: auto 0;">
+                        <div class="info-card" style="max-width: 650px; margin: 0 auto 20px auto; padding: 25px;">
+                            <p style="font-size: 18px; font-weight: 800; color: var(--primary-dark); line-height: 1.8;">
+                                "Tôi tôn trọng lá chắn bảo vệ của chính mình.<br>
+                                Tôi tôn trọng lá chắn bảo vệ của người khác.<br>
+                                Tôi lên tiếng quyết đoán — Không né tránh, Không bốc đồng!"
+                            </p>
+                        </div>
+                        <div class="stamp-box">
+                            <div class="gold-stamp" id="gold-stamp-el">ĐÃ CAM KẾT</div>
+                        </div>
+                        <br><br>
+                        <button class="btn-check-answer" onclick="triggerGoldStamp()">⭐ BẤM ĐÓNG DẤU GOLD STAMP ĐÃ CAM KẾT</button>
+                    </div>
+                `;
+            case "slide_25":
+                return `
+                    <div style="text-align: center; margin: auto 0;">
+                        <div style="font-size: 75px; margin-bottom: 10px;">📜🏆✨</div>
+                        <h2 style="font-size: 26px; font-weight: 900; color: var(--primary-dark); margin-bottom: 8px;" id="certi-recipient-title">GIẤY CHỨNG NHẬN BÁC SĨ NỘI TRÚ NOVA HOSPITAL</h2>
+                        <p style="font-size: 15px; color: var(--text-muted); max-width: 650px; margin: 0 auto 20px auto;">Đã hoàn thành xuất sắc chương trình thiết lập lá chắn bảo vệ ranh giới cá nhân!</p>
+                        <input type="text" id="kipse-name-input" value="Kíp Trực Cấp Cứu Nova" style="padding: 10px 18px; font-size: 16px; font-weight: 700; border: 2px solid var(--primary); border-radius: 8px; text-align: center; margin-bottom: 15px;">
+                        <br>
+                        <button class="nav-btn" style="padding: 12px 30px; font-size: 15px;" onclick="issueCertificate()">📜 VINH DANH & BẮN PHÁO HOA CONFETTI 🎉</button>
+                    </div>
+                `;
+            case "slide_26":
+                return `
+                    <div style="text-align: center; margin: auto 0;">
+                        <div style="font-size: 85px; margin-bottom: 12px;">🎉🌟🛡️</div>
+                        <h2 style="font-size: 28px; font-weight: 900; color: var(--primary-dark); margin-bottom: 10px;">VINH DANH BÁC SĨ CHÍNH THỨC NOVA HOSPITAL (GIAI ĐOẠN 8 - 3 PHÚT)</h2>
+                        <p style="font-size: 15.5px; color: var(--text-muted); max-width: 650px; margin: 0 auto 20px auto; line-height: 1.6;">Bài tập về nhà: Thực hành từ chối quyết đoán bằng thông điệp tôi và bảo vệ lá chắn ranh giới cá nhân trong cuộc sống hàng ngày!</p>
+                        <button class="nav-btn" style="padding: 14px 35px; font-size: 16px;" onclick="playVictoryChime()">🏆 HOÀN THÀNH BÀI HỌC</button>
+                    </div>
+                `;
+            default:
+                return `<div class="info-card">Slide content</div>`;
+        }
+    }
+
+    // BUILD SIDEBAR
+    function buildSidebar() {
+        const sidebarEl = document.getElementById('sidebar-content');
+        sidebarEl.innerHTML = '';
+
+        let currentStage = "";
+        let currentGroupEl = null;
+        let currentListEl = null;
+
+        slidesData.forEach((s, idx) => {
+            if (s.stage !== currentStage) {
+                currentStage = s.stage;
+                currentGroupEl = document.createElement('div');
+                currentGroupEl.className = 'sidebar-stage-group';
+
+                const titleEl = document.createElement('div');
+                titleEl.className = 'sidebar-stage-title';
+                titleEl.innerText = currentStage;
+                currentGroupEl.appendChild(titleEl);
+
+                currentListEl = document.createElement('ul');
+                currentListEl.className = 'slide-list';
+                currentGroupEl.appendChild(currentListEl);
+
+                sidebarEl.appendChild(currentGroupEl);
+            }
+
+            const item = document.createElement('li');
+            item.className = `slide-item ${idx === currentSlideIdx ? 'active' : ''}`;
+            item.onclick = () => goToSlide(idx);
+            item.innerHTML = `
+                <span>${s.id}. ${s.title}</span>
+                <span class="slide-badge">${s.code}</span>
+            `;
+            currentListEl.appendChild(item);
+        });
+    }
+
+    // NAVIGATION
+    function goToSlide(idx) {
+        if (idx < 0 || idx >= slidesData.length) return;
+
+        document.querySelectorAll('.slide-frame').forEach(f => f.classList.remove('active'));
+
+        currentSlideIdx = idx;
+        const currentData = slidesData[currentSlideIdx];
+        const targetFrame = document.getElementById(`slide-${currentData.id}`);
+        if (targetFrame) targetFrame.classList.add('active');
+
+        document.getElementById('current-slide-code').innerText = currentData.code;
+        document.getElementById('current-slide-title-header').innerText = currentData.title;
+        document.getElementById('current-stage-badge').innerText = currentData.stage;
+        document.getElementById('slide-counter').innerText = `SLIDE ${currentSlideIdx + 1} / ${slidesData.length}`;
+
+        buildSidebar();
+
+        if (timerInterval) clearInterval(timerInterval);
+
+        if (currentData.id === 5) startTimer(5, 10);
+        if (currentData.id === 8) startTimer(8, 300);
+        if (currentData.id === 14) startTimer(14, 480);
+        if (currentData.id === 21) startTimer(21, 300);
+        if (currentData.id === 23) setTimeout(redrawSvgLines, 100);
+    }
+
+    function nextSlide() { goToSlide(currentSlideIdx + 1); }
+    function prevSlide() { goToSlide(currentSlideIdx - 1); }
+
+    // WEB AUDIO API
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function playAudioTone(freq, duration) {
+        initAudio();
+        try {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            setTimeout(() => osc.stop(), duration * 1000);
+        } catch(e) {}
+    }
+
+    function playSiren() {
+        initAudio();
+        try {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.8);
+            osc.start();
+            setTimeout(() => osc.stop(), 1500);
+        } catch(e) {}
+    }
+
+    function playStampSound() {
+        initAudio();
+        try {
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.type = 'triangle'; osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+            gain.gain.setValueAtTime(1.0, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            osc.start(now); osc.stop(now + 0.15);
+        } catch(e) {}
+    }
+
+    function playVictoryChime() {
+        initAudio();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, index) => {
+            setTimeout(() => playAudioTone(freq, 0.4), index * 200);
+        });
+    }
+
+    function triggerRedStamp() {
+        playStampSound();
+        const stamp = document.getElementById('red-stamp-el');
+        if (stamp) stamp.style.display = 'inline-block';
+    }
+
+    function triggerGreenStamp() {
+        playStampSound();
+        const stamp = document.getElementById('green-stamp-el');
+        if (stamp) stamp.style.display = 'inline-block';
+    }
+
+    function triggerGoldStamp() {
+        playStampSound();
+        const stamp = document.getElementById('gold-stamp-el');
+        if (stamp) stamp.style.display = 'inline-block';
+    }
+
+    function issueCertificate() {
+        playVictoryChime();
+        const input = document.getElementById('kipse-name-input');
+        const name = input ? input.value : "Kíp Trực Nova";
+        const title = document.getElementById('certi-recipient-title');
+        if (title) title.innerText = `CHỨNG NHẬN BÁC SĨ NỘI TRÚ: ${name.toUpperCase()}`;
+    }
+
+    // MODAL DIALOG CONTROLS
+    function openPatientModal(icon, name, desc) {
+        playStampSound();
+        document.getElementById('modal-patient-icon').innerText = icon;
+        document.getElementById('modal-patient-name').innerText = name;
+        document.getElementById('modal-patient-desc').innerText = desc;
+        document.getElementById('patient-modal').style.display = 'flex';
+    }
+
+    function closePatientModal() {
+        playAudioTone(800, 0.05);
+        document.getElementById('patient-modal').style.display = 'none';
+    }
+
+    // GAME 1 LOGIC (RADAR SLIDE 8 PATIENTS A, NHI, HÙNG)
+    function selectPatientChoice(el, patientName, choice) {
+        playAudioTone(1000, 0.05);
+        const parent = el.parentElement;
+        parent.querySelectorAll('.game-hitbox-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    // GAME 2 LOGIC (HIGHLIGHT TOKEN SLIDE 14)
+    function toggleToken(el) {
+        playAudioTone(1200, 0.05);
+        el.classList.toggle('highlighted');
+    }
+
+    // GAME 3 LOGIC (ARRANGER SLIDE 21)
+    let selectedStepText = null;
+    function selectArrangerStep(el, text) {
+        playAudioTone(1000, 0.05);
+        document.querySelectorAll('#slide-21 .game-hitbox-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedStepText = text;
+    }
+
+    function fillArrangerSlot(el, slotNum) {
+        if (selectedStepText) {
+            playAudioTone(1200, 0.08);
+            el.innerText = `Slot ${slotNum}: ${selectedStepText}`;
+            el.classList.add('filled');
+            selectedStepText = null;
+            document.querySelectorAll('#slide-21 .game-hitbox-card').forEach(c => c.classList.remove('selected'));
+        }
+    }
+
+    // TIMER LOGIC
+    function startTimer(slideNum, totalSeconds) {
+        if (timerInterval) clearInterval(timerInterval);
+        let remain = totalSeconds;
+        const displayEl = document.getElementById(`timer-val-${slideNum}`);
+        if (!displayEl) return;
+
+        const updateDisp = () => {
+            const m = Math.floor(remain / 60);
+            const s = remain % 60;
+            displayEl.innerText = m > 0 ? `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${s}s`;
+            if (remain <= 3) playAudioTone(900, 0.08);
+        };
+
+        updateDisp();
+        timerInterval = setInterval(() => {
+            remain--;
+            if (remain <= 0) {
+                clearInterval(timerInterval);
+                updateDisp();
+            } else {
+                updateDisp();
+            }
+        }, 1000);
+    }
+
+    // GAME CHECKS DIRECT TO ĐA
+    function checkAnswerSlide8() {
+        playAudioTone(800, 0.3);
+        setTimeout(() => goToSlide(8), 500); // Direct to Slide 9 (idx 8 - ĐA01 Summary A, Nhi, Hùng)
+    }
+
+    function checkAnswerSlide14() {
+        playAudioTone(800, 0.3);
+        setTimeout(() => goToSlide(14), 500); // Direct to Slide 15 (idx 14 - CB01 Chẩn đoán)
+    }
+
+    function checkAnswerSlide21() {
+        playAudioTone(1200, 0.3);
+        setTimeout(() => goToSlide(21), 500); // Direct to Slide 22 (idx 21 - ĐA01)
+    }
+
+    // SVG TAP TO CONNECT
+    let activeSvgConnections = [];
+    let selectedLeftNode = null;
+
+    function handleSvgTap(id) {
+        playAudioTone(1000, 0.05);
+        if (id.startsWith('left-')) {
+            document.querySelectorAll('#col-left .node-item').forEach(n => n.classList.remove('active-node'));
+            document.getElementById(id).classList.add('active-node');
+            selectedLeftNode = id;
+        } else if (id.startsWith('right-') && selectedLeftNode) {
+            activeSvgConnections = activeSvgConnections.filter(c => c.from !== selectedLeftNode);
+            activeSvgConnections.push({ from: selectedLeftNode, to: id });
+            document.querySelectorAll('#col-left .node-item').forEach(n => n.classList.remove('active-node'));
+            selectedLeftNode = null;
+            redrawSvgLines();
+        }
+    }
+
+    function redrawSvgLines() {
+        const svg = document.getElementById('svg-canvas');
+        if (!svg) return;
+        svg.innerHTML = '';
+        const rect = svg.getBoundingClientRect();
+
+        activeSvgConnections.forEach(conn => {
+            const el1 = document.getElementById(conn.from);
+            const el2 = document.getElementById(conn.to);
+            if (el1 && el2) {
+                const r1 = el1.getBoundingClientRect();
+                const r2 = el2.getBoundingClientRect();
+                const x1 = r1.right - rect.left;
+                const y1 = r1.top + r1.height / 2 - rect.top;
+                const x2 = r2.left - rect.left;
+                const y2 = r2.top + r2.height / 2 - rect.top;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', '#0077b6');
+                line.setAttribute('stroke-width', '4');
+                line.setAttribute('stroke-dasharray', '6');
+                svg.appendChild(line);
+            }
+        });
+    }
+
+    window.addEventListener('resize', redrawSvgLines);
+
+    function checkAnswerSlide23() {
+        playAudioTone(1400, 0.3);
+        setTimeout(() => goToSlide(23), 500); // Direct to Slide 24 (idx 23 - CK01)
+    }
+
+    // INIT APP
+    window.onload = () => {
+        renderSlides();
+        goToSlide(0);
+    };
+</script>
+
+</body>
+</html>

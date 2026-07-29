@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài 8.6 - Tiết 2: Bác Sĩ Cộng Đồng - Ranh Giới Cá Nhân Nova Hospital</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0077b6;
+            --primary-light: #90e0ef;
+            --primary-dark: #03045e;
+            --secondary: #00a896;
+            --accent: #e63946;
+            --accent-yellow: #ffb703;
+            --bg-glass: rgba(255, 255, 255, 0.94);
+            --border-glass: rgba(0, 119, 182, 0.2);
+            --text-main: #1d3557;
+            --text-muted: #4a5568;
+            --sidebar-width: 300px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Outfit', 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #e0f2fe;
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(224, 242, 254, 0.92), rgba(186, 230, 253, 0.92)), url('assets/community_health_bg.png');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+        }
+
+        .app-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* SIDEBAR ĐIỀU HƯỚNG BÊN TRÁI */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid var(--border-glass);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 18px 14px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary-dark));
+            color: white;
+            font-weight: 800;
+            font-size: 14.5px;
+            text-align: center;
+            border-bottom: 2px solid var(--accent-yellow);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .sidebar-stage-group {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-stage-title {
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--primary);
+            background: rgba(0, 119, 182, 0.08);
+            border-left: 3px solid var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .slide-list {
+            list-style: none;
+            padding: 4px 6px;
+        }
+
+        .slide-item {
+            padding: 8px 10px;
+            margin-bottom: 3px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            line-height: 1.3;
+            border: 1px solid transparent;
+        }
+
+        .slide-item:hover {
+            background: rgba(0, 168, 150, 0.08);
+            color: var(--secondary);
+        }
+
+        .slide-item.active {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0, 168, 150, 0.2);
+        }
+
+        .slide-badge {
+            font-size: 9.5px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.08);
+            color: inherit;
+        }
+
+        .slide-item.active .slide-badge {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* PHẦN TRÌNH CHIẾU CHÍNH */
+        .presentation-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* HEADER THÔNG TIN */
+        .presentation-header {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 5;
+        }
+
+        .header-title {
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-stage-badge {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* VIEWPORT SLIDE FRAME */
+        .slide-viewport {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide-frame {
+            width: 100%;
+            height: 100%;
+            max-width: 1150px;
+            max-height: 700px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(3, 4, 94, 0.12);
+            padding: 30px;
+            display: none;
+            flex-direction: column;
+            position: relative;
+            overflow-y: auto;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .slide-frame.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.99); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* CARDS TEMPLATES */
+        .info-card {
+            background: white;
+            border-radius: 16px;
+            padding: 22px;
+            border: 1px solid rgba(0, 119, 182, 0.12);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+            margin-bottom: 15px;
+        }
+
+        .info-card-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card-text {
+            font-size: 14px;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* TIMER WIDGET */
+        .timer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 168, 150, 0.08);
+            border: 1px solid rgba(0, 168, 150, 0.2);
+            border-radius: 12px;
+            padding: 10px 18px;
+            margin-bottom: 15px;
+        }
+
+        .timer-display {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--secondary);
+        }
+
+        /* CHECK ANSWER BUTTON (HITBOX >= 70PX) */
+        .btn-check-answer {
+            min-height: 70px;
+            min-width: 220px;
+            padding: 0 30px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 20px rgba(0, 168, 150, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            align-self: center;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .btn-check-answer:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 119, 182, 0.35);
+        }
+
+        /* GAME HITBOX CARDS (MIN-HEIGHT 70PX) */
+        .game-hitbox-card {
+            min-height: 75px;
+            background: white;
+            border: 2px solid rgba(0, 168, 150, 0.18);
+            border-radius: 12px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .game-hitbox-card:hover {
+            border-color: var(--secondary);
+            background: rgba(0, 168, 150, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .game-hitbox-card.selected {
+            border-color: var(--primary) !important;
+            background: rgba(0, 119, 182, 0.15) !important;
+            box-shadow: 0 0 15px rgba(0, 119, 182, 0.3);
+        }
+
+        /* HIGHLIGHTABLE TOKENS */
+        .word-token {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px 4px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .word-token.highlighted {
+            background: var(--accent-yellow) !important;
+            color: var(--primary-dark) !important;
+            font-weight: 800;
+            box-shadow: 0 0 10px rgba(255, 183, 3, 0.6);
+        }
+
+        /* STAMP EFFECT */
+        .stamp-box {
+            position: relative;
+            display: inline-block;
+        }
+
+        .red-stamp {
+            border: 5px double var(--accent);
+            color: var(--accent);
+            font-size: 28px;
+            font-weight: 900;
+            padding: 12px 30px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            transform: rotate(-12deg);
+            box-shadow: 0 0 20px rgba(230, 57, 70, 0.4);
+            display: none;
+            animation: stampPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .gold-stamp {
+            border: 5px double var(--accent-yellow);
+            color: var(--accent-yellow);
+            font-size: 28px;
+            font-weight: 900;
+            padding: 12px 30px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            transform: rotate(-8deg);
+            box-shadow: 0 0 20px rgba(255, 183, 3, 0.5);
+            display: none;
+            animation: stampPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes stampPop {
+            from { transform: scale(3) rotate(-30deg); opacity: 0; }
+            to { transform: scale(1) rotate(-12deg); opacity: 1; }
+        }
+
+        /* SVG MATCHING CONTAINER */
+        .svg-matching-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            flex-grow: 1;
+            margin: 15px 0;
+        }
+
+        .svg-col {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 320px;
+            z-index: 2;
+        }
+
+        .node-item {
+            min-height: 70px;
+            background: white;
+            border: 2px solid rgba(0, 168, 150, 0.18);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13.5px;
+            font-weight: 600;
+        }
+
+        .node-item:hover, .node-item.active-node {
+            border-color: var(--secondary);
+            background: rgba(0, 168, 150, 0.08);
+        }
+
+        .node-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--secondary);
+        }
+
+        #svg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* FOOTER NAV */
+        .presentation-footer {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.9);
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+            z-index: 5;
+        }
+
+        .nav-btn {
+            min-height: 44px;
+            padding: 0 20px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            border: none;
+            color: white;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        .slide-counter {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .slide-section-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .slide-section-sub {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        /* PATIENT GRID */
+        .patient-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .patient-card {
+            background: white;
+            border: 2px solid rgba(0, 168, 150, 0.15);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .patient-card:hover {
+            border-color: var(--secondary);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 168, 150, 0.15);
+        }
+
+        /* MODAL POPUP */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- SIDEBAR BÁC SĨ CỘNG ĐỒNG -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div>TIẾT 2: BÁC SĨ CỘNG ĐỒNG</div>
+            <div style="font-size: 11px; opacity: 0.8; margin-top: 2px;">RANH GIỚI AN TOÀN HỌC ĐƯỜNG</div>
+        </div>
+        <div id="sidebar-content"></div>
+    </div>
+
+    <!-- MAIN PRESENTATION AREA -->
+    <div class="presentation-area">
+        
+        <!-- HEADER -->
+        <div class="presentation-header">
+            <div class="header-title">
+                <span id="current-slide-code" style="color: var(--secondary); font-weight: 900;">BĐ01</span>
+                <span>•</span>
+                <span id="current-slide-title-header">Tiêu đề slide</span>
+            </div>
+            <div class="header-stage-badge" id="current-stage-badge">GIAI ĐOẠN 1: MỞ KHÓA CHIẾN DỊCH</div>
+        </div>
+
+        <!-- VIEWPORT SLIDES -->
+        <div class="slide-viewport" id="slide-viewport-container"></div>
+
+        <!-- FOOTER -->
+        <div class="presentation-footer">
+            <button class="nav-btn" onclick="prevSlide()">◀ SLIDE TRƯỚC</button>
+            <div class="slide-counter" id="slide-counter">SLIDE 1 / 15</div>
+            <button class="nav-btn" onclick="nextSlide()">SLIDE TIẾP ▶</button>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- MODAL DIALOG PATIENT CASES TIẾT 2 -->
+<div class="modal-overlay" id="patient-modal">
+    <div class="modal-box">
+        <div style="font-size: 50px;" id="modal-patient-icon">🎒</div>
+        <h3 style="font-size: 22px; color: var(--primary-dark); margin: 10px 0;" id="modal-patient-name">Tên Bệnh Nhân</h3>
+        <p style="font-size: 15px; color: var(--text-muted); line-height: 1.6;" id="modal-patient-desc">Mô tả bệnh án</p>
+        <button class="nav-btn" style="margin-top: 20px; padding: 10px 25px;" onclick="closePatientModal()">ĐÓNG HỒ SƠ BỆNH ÁN</button>
+    </div>
+</div>
+
+<script>
+    // STANDALONE TIẾT 2 CURRICULUM (BÁC SĨ CỘNG ĐỒNG CONCEPT - 15 SLIDES)
+    const slidesData = [
+        { id: 1, code: "MĐ01", stage: "1. MỞ KHÓA CHIẾN DỊCH SỨC KHỎE", title: "Thiết Lập Ranh Giới Cá Nhân & Lá Chắn Bảo Vệ Học Đường", type: "slide_1" },
+        { id: 2, code: "MT01", stage: "1. MỞ KHÓA CHIẾN DỊCH SỨC KHỎE", title: "Mục tiêu Tiết 2 (Bác sĩ Cộng đồng)", type: "slide_2" },
+        { id: 3, code: "QS01", stage: "1. MỞ KHÓA CHIẾN DỊCH SỨC KHỎE", title: "Big Question Bác sĩ Cộng đồng", type: "slide_3" },
+        { id: 4, code: "BĐ01", stage: "1. MỞ KHÓA CHIẾN DỊCH SỨC KHỎE", title: "Game Giải Cứu Ranh Giới Cá Nhân (05:00)", type: "slide_4" },
+        { id: 5, code: "NV01", stage: "2. NHẬN NHIỆM VỤ CỘNG ĐỒNG", title: "Chiến dịch Ranh Giới An Toàn Học Đường (04:00)", type: "slide_5" },
+        { id: 6, code: "NV01", stage: "2. NHẬN NHIỆM VỤ CỘNG ĐỒNG", title: "Patient Grid Ca Bệnh Su, Minh Anh, Kem, Bảo Vy", type: "slide_6" },
+        { id: 7, code: "GT01", stage: "3. KHẢO SÁT THỰC TRẠNG", title: "Bản Đồ Thói Quen Ranh Giới (08:00)", type: "slide_7" },
+        { id: 8, code: "TH01", stage: "3. KHẢO SÁT THỰC TRẠNG", title: "Game Touch-to-Highlight Dấu Hiệu Lấn Sân", type: "slide_8" },
+        { id: 9, code: "TB01", stage: "4. PHÂN TÍCH NGUY CƠ", title: "Nếu Kéo Dài 1 Năm Thì Sao? (08:00)", type: "slide_9" },
+        { id: 10, code: "ĐA01", stage: "5. KẾT LUẬN CỘNG ĐỒNG", title: "Thông Điệp Bác Sĩ Cộng Đồng & RED STAMP (06:00)", type: "slide_10" },
+        { id: 11, code: "TH01", stage: "6. THIẾT KẾ CHIẾN DỊCH", title: "Thiết Kế Poster Tuyên Truyền (09:00)", type: "slide_11" },
+        { id: 12, code: "CK01", stage: "7. NHẬT KÝ BÁC SĨ CỘNG ĐỒNG", title: "Game SVG Tap-to-Connect T-Chart Y Đức (03:00)", type: "slide_12" },
+        { id: 13, code: "CK01", stage: "7. NHẬT KÝ BÁC SĨ CỘNG ĐỒNG", title: "Con Dấu Vàng GOLD STAMP Đã Cam Kết", type: "slide_13" },
+        { id: 14, code: "VD01", stage: "8. TƯ DUY PHÒNG BỆNH", title: "Cấp Certificate Bác sĩ Cộng đồng & Confetti (02:00)", type: "slide_14" },
+        { id: 15, code: "VD01", stage: "8. TƯ DUY PHÒNG BỆNH", title: "Cam Kết 1 Thay Đổi Nhỏ & Habit Tracker 7 Ngày", type: "slide_15" }
+    ];
+
+    let currentSlideIdx = 0;
+    let timerInterval = null;
+    let audioCtx = null;
+
+    // RENDER SLIDES
+    function renderSlides() {
+        const container = document.getElementById('slide-viewport-container');
+        container.innerHTML = '';
+
+        slidesData.forEach((s, idx) => {
+            const frame = document.createElement('div');
+            frame.className = `slide-frame ${idx === currentSlideIdx ? 'active' : ''}`;
+            frame.id = `slide-${s.id}`;
+            frame.innerHTML = generateSlideHtml(s);
+            container.appendChild(frame);
+        });
+    }
+
+    // HTML GENERATOR TIẾT 2
+    function generateSlideHtml(s) {
+        switch(s.type) {
+            case "slide_1":
+                return `
+                    <div style="text-align: center; margin: auto 0;">
+                        <div style="font-size: 18px; font-weight: 800; color: var(--secondary); letter-spacing: 3px; margin-bottom: 10px;">BÀI 8.6 • TIẾT 2: BÁC SĨ CỘNG ĐỒNG</div>
+                        <h1 style="font-size: 32px; font-weight: 900; color: var(--primary-dark); margin-bottom: 15px; text-transform: uppercase;">THIẾT LẬP RANH GIỚI CÁ NHÂN & LÁ CHẤN BẢO VỆ HỌC ĐƯỜNG</h1>
+                        <p style="font-size: 15.5px; color: var(--text-muted); max-width: 700px; margin: 0 auto 30px auto; line-height: 1.6;">Khảo sát thực trạng, bóc tách Virus guilt-trip và thiết kế Poster chiến dịch tuyên truyền bảo vệ ranh giới cá nhân.</p>
+                        <button class="nav-btn" style="padding: 14px 35px; font-size: 16px;" onclick="nextSlide()">BẮT ĐẦU CHIẾN DỊCH 📢</button>
+                    </div>
+                `;
+            case "slide_2":
+                return `
+                    <div class="slide-section-title">MỤC TIÊU TIẾT 2 (BÁC SĨ CỘNG ĐỒNG)</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: auto 0;">
+                        <div class="info-card" style="border-top: 4px solid var(--secondary);">
+                            <div class="info-card-title">🧪 1. KIẾN THỨC</div>
+                            <div class="info-card-text">
+                                • Nhận biết thói quen lấn sân ranh giới cá nhân phổ biến.<br>
+                                • Hiểu tổn thương tâm lý và 3 khu vực ranh giới cốt lõi.
+                            </div>
+                        </div>
+                        <div class="info-card" style="border-top: 4px solid var(--primary);">
+                            <div class="info-card-title">🩹 2. KỸ NĂNG</div>
+                            <div class="info-card-text">
+                                • Phân loại thói quen ứng xử ranh giới.<br>
+                                • Phân tích hậu quả nếu kéo dài 1 năm và chuyển hóa thành Poster tuyên truyền.
+                            </div>
+                        </div>
+                        <div class="info-card" style="border-top: 4px solid var(--accent-yellow);">
+                            <div class="info-card-title">❤️ 3. THÁI ĐỘ</div>
+                            <div class="info-card-text">
+                                • Chủ động bảo vệ ranh giới cá nhân.<br>
+                                • Tôn trọng không gian riêng tư của bạn bè và lan tỏa thông điệp tích cực.
+                            </div>
+                        </div>
+                    </div>
+                `;
+            case "slide_3":
+                return `
+                    <div style="text-align: center; margin: auto 0;">
+                        <div class="info-card" style="max-width: 750px; margin: auto; padding: 35px; border-color: var(--secondary);">
+                            <div style="font-size: 65px; margin-bottom: 10px;">❓📢</div>
+                            <div style="font-size: 16px; font-weight: 800; color: var(--secondary); letter-spacing: 2px; margin-bottom: 8px;">BIG QUESTION BÁC SĨ CỘNG ĐỒNG</div>
+                            <h2 style="font-size: 23px; font-weight: 800; color: var(--primary-dark); line-height: 1.5;">Nếu nhiều bạn chưa biết cách bảo vệ lá chắn ranh giới cá nhân hoặc vô tình lấn sân ranh giới của bạn bè, chúng ta nên giúp cộng đồng thay đổi điều gì?</h2>
+                        </div>
+                    </div>
+                `;
+            case "slide_4":
+                return `
+                    <div class="timer-row">
+                        <span>THỜI GIAN MỞ KHÓA CHIẾN DỊCH (5 PHÚT):</span>
+                        <span class="timer-display" id="timer-val-4">05:00</span>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 800; color: var(--primary-dark); margin-bottom: 10px; text-transform: uppercase;">
+                        🎮 GAME: GIẢI CỨU RANH GIỚI CÁ NHÂN (CHỌN THẺ 🟢 HOẶC 🔴):
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px;">
+                        <div class="game-hitbox-card" onclick="selectT2Choice(this, '🟢 Bảo vệ ranh giới')">🎒 Hỏi xin phép trước khi lấy mượn đồ của bạn</div>
+                        <div class="game-hitbox-card" onclick="selectT2Choice(this, '🔴 Lấn sân ranh giới')">🔐 Ép bạn đưa mật khẩu mạng xã hội</div>
+                        <div class="game-hitbox-card" onclick="selectT2Choice(this, '🔴 Lấn sân ranh giới')">👾 Trêu ngoại hình bạn trước lớp & kêu đùa tí</div>
+                    </div>
+                    <button class="btn-check-answer" onclick="checkAnswerT2Slide4()">⚡ KIỂM TRA ĐÁP ÁN GIẢI CỨU RANH GIỚI</button>
+                `;
+            case "slide_5":
+                return `
+                    <div class="slide-section-title">2. NHẬN NHIỆM VỤ CỘNG ĐỒNG (4 PHÚT)</div>
+                    <div class="info-card" style="text-align: center; padding: 30px; margin: auto 0;">
+                        <div style="font-size: 60px; margin-bottom: 10px;">📢🎨</div>
+                        <h3 style="color: var(--primary-dark); margin-bottom: 10px;">CHIẾN DỊCH PHÁT TRIỂN RANH GIỚI AN TOÀN HỌC ĐƯỜNG</h3>
+                        <p style="font-size: 15px; color: var(--text-muted); max-width: 700px; margin: 0 auto; line-height: 1.6;">Nova Community Health giao nhiệm vụ: Mỗi kíp trực bác sĩ cộng đồng thiết kế 1 Poster tuyên truyền hướng dẫn học sinh từ bỏ lấn sân ranh giới cá nhân.</p>
+                    </div>
+                `;
+            case "slide_6":
+                return `
+                    <div class="slide-section-title">PATIENT GRID CA BỆNH NHÂN (CHẠM ĐỂ XEM HỒ SƠ)</div>
+                    <div class="patient-grid">
+                        <div class="patient-card" onclick="openPatientModal('🎒', 'Bệnh nhân Su', 'Su bị bạn cùng lớp tự ý lấy balo và lục tìm tẩy mà không hề xin phép trước.')">
+                            <div style="font-size: 36px;">🎒</div>
+                            <strong>Su</strong>
+                            <p style="font-size: 11.5px; color: var(--text-muted);">Lục balo tự ý</p>
+                        </div>
+                        <div class="patient-card" onclick="openPatientModal('🔐', 'Bệnh nhân Minh Anh', 'Minh Anh bị bạn thân ép phải đưa mật khẩu tài khoản mạng xã hội để kiểm tra tin nhắn.')">
+                            <div style="font-size: 36px;">🔐</div>
+                            <strong>Minh Anh</strong>
+                            <p style="font-size: 11.5px; color: var(--text-muted);">Ép đưa mật khẩu</p>
+                        </div>
+                        <div class="patient-card" onclick="openPatientModal('💬', 'Bệnh nhân Kem', 'Kem bị các bạn đem ngoại hình ra làm trò đùa trước tập thể và kêu đùa tí làm gì căng.')">
+                            <div style="font-size: 36px;">💬</div>
+                            <strong>Kem</strong>
+                            <p style="font-size: 11.5px; color: var(--text-muted);">Đùa giỡn ngoại hình</p>
+                        </div>
+                        <div class="patient-card" onclick="openPatientModal('👾', 'Bệnh nhân Bảo Vy', 'Bảo Vy bị người khác guilt-trip ép cho mượn sổ nhật ký cá nhân nếu không sẽ nghỉ chơi.')">
+                            <div style="font-size: 36px;">👾</div>
+                            <strong>Bảo Vy</strong>
+                            <p style="font-size: 11.5px; color: var(--text-muted);">Thao túng cảm xúc</p>
+                        </div>
+                    </div>
+                `;
+            case "slide_7":
+                return `
+                    <div class="slide-section-title">3. KHẢO SÁT THỰC TRẠNG (8 PHÚT)</div>
+                    <div class="info-card" style="margin: auto 0; padding: 25px;">
+                        <h3 style="color: var(--primary-dark); margin-bottom: 10px;">📋 BẢN ĐỒ THÓI QUEN RANH GIỚI HỌC ĐƯỜNG:</h3>
+                        <p style="font-size: 14.5px; color: var(--text-muted); line-height: 1.7;">Phân loại 12 thói quen ứng xử vào 2 cột: ✅ Tôn trọng ranh giới | ⚠️ Lấn sân ranh giới thuộc 3 khu vực (Thân thể & Vật lý, Cảm xúc & Tinh thần, Thông tin & Riêng tư).</p>
+                    </div>
+                `;
+            case "slide_8":
+                return `
+                    <div class="timer-row">
+                        <span>THỜI GIAN KHẢO SÁT THỰC TRẠNG (GIAI ĐOẠN 3):</span>
+                        <span class="timer-display" id="timer-val-8">08:00</span>
+                    </div>
+                    <div class="info-card" style="padding: 22px;">
+                        <h4 style="color: var(--primary-dark); margin-bottom: 12px;">CHẠM VÀO TỪ KHÓA ĐỂ GẠCH CHÂN VÀNG NEON DẤU HIỆU LẤN SÂN:</h4>
+                        <div style="font-size: 16px; line-height: 2.2; color: var(--text-main);">
+                            <span class="word-token" onclick="toggleToken(this)">Nhiều bạn vô tình</span>
+                            <span class="word-token" id="token-t2-1" onclick="toggleToken(this)">tự ý lục balo</span>
+                            <span class="word-token" id="token-t2-2" onclick="toggleToken(this)">ép chia sẻ mật khẩu mạng xã hội</span>
+                            <span class="word-token" onclick="toggleToken(this)">hoặc</span>
+                            <span class="word-token" id="token-t2-3" onclick="toggleToken(this)">lấy ngoại hình ra đùa giỡn</span>
+                            <span class="word-token" id="token-t2-4" onclick="toggleToken(this)">và dùng Virus guilt-trip thao túng</span>
+                        </div>
+                    </div>
+                    <button class="btn-check-answer" onclick="checkAnswerT2Slide8()">🔍 KIỂM TRA ĐÁP ÁN KHẢO SÁT</button>
+                `;
+            case "slide_9":
+                return `
+                    <div class="slide-section-title">4. PHÂN TÍCH NGUY CƠ (8 PHÚT)</div>
+                    <div class="info-card" style="margin: auto 0; padding: 25px; border-color: var(--accent);">
+                        <h3 style="color: var(--accent); margin-bottom: 10px;">⚠️ NẾU KÉO DÀI 1 NĂM THÌ SAO?</h3>
+                        <ul style="padding-left: 20px; line-height: 1.8; color: var(--text-muted); font-size: 14.5px;">
+                            <li><strong>Tự ý lục balo:</strong> Mất an toàn vật lý, mất niềm tin hoàn toàn vào bạn bè.</li>
+                            <li><strong>Ép mật khẩu MXH:</strong> Căng thẳng, hoảng sợ rạn nứt riêng tư kéo dài.</li>
+                            <li><strong>Guilt-trip đùa ngoại hình:</strong> Tổn thương tâm lý, cảm thấy có lỗi vô lý, sứt mẻ tình bạn.</li>
+                        </ul>
+                    </div>
+                `;
+            case "slide_10":
+                return `
+                    <div class="slide-section-title">5. KẾT LUẬN CỘNG ĐỒNG & RED STAMP (6 PHÚT)</div>
+                    <div style="text-align: center; margin: auto 0;">
+                        <div class="info-card" style="max-width: 750px; margin: 0 auto 20px auto; text-align: left;">
+                            <strong style="color: var(--secondary);">Thông điệp Bác sĩ Cộng đồng:</strong> "Muốn có tình bạn bền vững và môi trường học đường an toàn, mỗi học sinh cần tôn trọng cả 3 khu vực ranh giới cá nhân!"
+                        </div>
+                        <div class="stamp-box">
+                            <div class="red-stamp" id="red-stamp-t2">ĐÃ PHÊ DUYỆT</div>
+                        </div>
+                        <br><br>
+                        <button class="btn-check-answer" onclick="triggerRedStampT2()">📌 ĐÓNG DẤU RED STAMP ĐÃ PHÊ DUYỆT</button>
+                    </div>
+                `;
+            case "slide_11":
+                return `
+                    <div class="timer-row">
+                        <span>THỜI GIAN THIẾT KẾ POSTER (9 PHÚT):</span>
+                        <span class="timer-display" id="timer-val-11">09:00</span>
+                    </div>
+                    <div class="info-card" style="padding: 20px;">
+                        <h4 style="color: var(--primary-dark); margin-bottom: 10px;">🎨 KHUNG THIẾT KẾ POSTER TUYÊN TRUYỀN 4 KHỐI:</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="info-card" style="margin: 0; padding: 12px; background: rgba(230, 57, 70, 0.05);">
+                                <strong style="color: var(--accent);">❗ Vấn đề:</strong> Xâm phạm ranh giới (lục balo, ép mật khẩu, guilt-trip).
+                            </div>
+                            <div class="info-card" style="margin: 0; padding: 12px; background: rgba(255, 183, 3, 0.08);">
+                                <strong style="color: var(--accent-yellow);">⚠️ Hậu quả:</strong> Tổn thương tâm lý & mất niềm tin bạn bè.
+                            </div>
+                            <div class="info-card" style="margin: 0; padding: 12px; background: rgba(0, 168, 150, 0.08);">
+                                <strong style="color: var(--secondary);">💡 Giải pháp:</strong> Quy trình 3 bước & Công thức Thông điệp Tôi.
+                            </div>
+                            <div class="info-card" style="margin: 0; padding: 12px; background: rgba(0, 119, 182, 0.08);">
+                                <strong style="color: var(--primary);">📢 Khẩu hiệu:</strong> Tôn trọng ranh giới – Tình bạn bền lâu.
+                            </div>
+                        </div>
+                    </div>
+                `;
+            case "slide_12":
+                return `
+                    <div class="slide-section-title">7. NHẬT KÝ BÁC SĨ CỘNG ĐỒNG (3 PHÚT)</div>
+                    <div class="svg-matching-container">
+                        <svg id="svg-canvas"></svg>
+                        <div class="svg-col" id="col-left">
+                            <div class="node-item" id="left-1" onclick="handleSvgTap('left-1')">
+                                <span>Thụ động né tránh lấn sân</span>
+                                <div class="node-dot"></div>
+                            </div>
+                            <div class="node-item" id="left-2" onclick="handleSvgTap('left-2')">
+                                <span>Chủ động nói thông điệp tôi tôn trọng ranh giới</span>
+                                <div class="node-dot"></div>
+                            </div>
+                        </div>
+                        <div class="svg-col" id="col-right">
+                            <div class="node-item" id="right-1" onclick="handleSvgTap('right-1')">
+                                <div class="node-dot"></div>
+                                <span>❌ Nguy cơ tổn thương</span>
+                            </div>
+                            <div class="node-item" id="right-2" onclick="handleSvgTap('right-2')">
+                                <div class="node-dot"></div>
+                                <span>✅ Văn hóa học đường an toàn</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-check-answer" onclick="checkAnswerT2Slide12()">⚡ KIỂM TRA T-CHART CỘNG ĐỒNG</button>
+                `;
+            case "slide_13":
+                return `
+                    <div class="slide-section-title">BẢN CAM KẾT Y ĐỨC BÁC SĨ CỘNG ĐỒNG</div>
+                    <div style="text-align: center; margin: auto 0;">
+                        <div class="info-card" style="max-width: 650px; margin: 0 auto 20px auto; padding: 25px;">
+                            <p style="font-size: 18px; font-weight: 800; color: var(--primary-dark); line-height: 1.8;">
+                                "Tôi cam kết lan tỏa văn hóa tôn trọng ranh giới cá nhân.<br>
+                                Tôi nói không với Virus guilt-trip và hành vi lấn sân.<br>
+                                Tôi cùng cộng đồng xây dựng môi trường học đường an toàn!"
+                            </p>
+                        </div>
+                        <div class="stamp-box">
+                            <div class="gold-stamp" id="gold-stamp-t2">ĐÃ CAM KẾT</div>
+                        </div>
+                        <br><br>
+                        <button class="btn-check-answer" onclick="triggerGoldStampT2()">⭐ BẤM ĐÓNG DẤU GOLD STAMP ĐÃ CAM KẾT</button>
+                    </div>
+                `;
+            case "slide_14":
+                return `
+                    <div style="text-align: center; margin: auto 0;">
+                        <div style="font-size: 75px; margin-bottom: 10px;">📜🎨✨</div>
+                        <h2 style="font-size: 26px; font-weight: 900; color: var(--primary-dark); margin-bottom: 8px;" id="certi-t2-title">GIẤY CHỨNG NHẬN BÁC SĨ CỘNG ĐỒNG NOVA HOSPITAL</h2>
+                        <p style="font-size: 15px; color: var(--text-muted); max-width: 650px; margin: 0 auto 20px auto;">Đã hoàn thành xuất sắc chiến dịch tuyên truyền bảo vệ ranh giới an toàn học đường!</p>
+                        <input type="text" id="kipse-t2-input" value="Kíp Trực Bác Sĩ Cộng Đồng Nova" style="padding: 10px 18px; font-size: 16px; font-weight: 700; border: 2px solid var(--secondary); border-radius: 8px; text-align: center; margin-bottom: 15px;">
+                        <br>
+                        <button class="nav-btn" style="padding: 12px 30px; font-size: 15px;" onclick="issueCertiT2()">📜 VINH DANH & BẮN PHÁO HOA CONFETTI 🎉</button>
+                    </div>
+                `;
+            case "slide_15":
+                return `
+                    <div style="text-align: center; margin: auto 0;">
+                        <div style="font-size: 85px; margin-bottom: 12px;">🎉🌟📢</div>
+                        <h2 style="font-size: 28px; font-weight: 900; color: var(--primary-dark); margin-bottom: 10px;">8. TƯ DUY PHÒNG BỆNH (2 PHÚT)</h2>
+                        <p style="font-size: 15.5px; color: var(--text-muted); max-width: 650px; margin: 0 auto 20px auto; line-height: 1.6;">Bài tập về nhà: Thực hiện 1 thay đổi nhỏ tôn trọng ranh giới bạn bè và duy trì Habit Tracker 7 ngày bảo vệ ranh giới cá nhân!</p>
+                        <button class="nav-btn" style="padding: 14px 35px; font-size: 16px;" onclick="playVictoryChime()">🏆 HOÀN THÀNH TIẾT 2</button>
+                    </div>
+                `;
+            default:
+                return `<div class="info-card">Slide content</div>`;
+        }
+    }
+
+    // BUILD SIDEBAR
+    function buildSidebar() {
+        const sidebarEl = document.getElementById('sidebar-content');
+        sidebarEl.innerHTML = '';
+
+        let currentStage = "";
+        let currentGroupEl = null;
+        let currentListEl = null;
+
+        slidesData.forEach((s, idx) => {
+            if (s.stage !== currentStage) {
+                currentStage = s.stage;
+                currentGroupEl = document.createElement('div');
+                currentGroupEl.className = 'sidebar-stage-group';
+
+                const titleEl = document.createElement('div');
+                titleEl.className = 'sidebar-stage-title';
+                titleEl.innerText = currentStage;
+                currentGroupEl.appendChild(titleEl);
+
+                currentListEl = document.createElement('ul');
+                currentListEl.className = 'slide-list';
+                currentGroupEl.appendChild(currentListEl);
+
+                sidebarEl.appendChild(currentGroupEl);
+            }
+
+            const item = document.createElement('li');
+            item.className = `slide-item ${idx === currentSlideIdx ? 'active' : ''}`;
+            item.onclick = () => goToSlide(idx);
+            item.innerHTML = `
+                <span>${s.id}. ${s.title}</span>
+                <span class="slide-badge">${s.code}</span>
+            `;
+            currentListEl.appendChild(item);
+        });
+    }
+
+    // NAVIGATION
+    function goToSlide(idx) {
+        if (idx < 0 || idx >= slidesData.length) return;
+
+        document.querySelectorAll('.slide-frame').forEach(f => f.classList.remove('active'));
+
+        currentSlideIdx = idx;
+        const currentData = slidesData[currentSlideIdx];
+        const targetFrame = document.getElementById(`slide-${currentData.id}`);
+        if (targetFrame) targetFrame.classList.add('active');
+
+        document.getElementById('current-slide-code').innerText = currentData.code;
+        document.getElementById('current-slide-title-header').innerText = currentData.title;
+        document.getElementById('current-stage-badge').innerText = currentData.stage;
+        document.getElementById('slide-counter').innerText = `SLIDE ${currentSlideIdx + 1} / ${slidesData.length}`;
+
+        buildSidebar();
+
+        if (timerInterval) clearInterval(timerInterval);
+
+        if (currentData.id === 4) startTimer(4, 300);
+        if (currentData.id === 8) startTimer(8, 480);
+        if (currentData.id === 11) startTimer(11, 540);
+        if (currentData.id === 12) setTimeout(redrawSvgLines, 100);
+    }
+
+    function nextSlide() { goToSlide(currentSlideIdx + 1); }
+    function prevSlide() { goToSlide(currentSlideIdx - 1); }
+
+    // WEB AUDIO API
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function playAudioTone(freq, duration) {
+        initAudio();
+        try {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            setTimeout(() => osc.stop(), duration * 1000);
+        } catch(e) {}
+    }
+
+    function playStampSound() {
+        initAudio();
+        try {
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.type = 'triangle'; osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+            gain.gain.setValueAtTime(1.0, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            osc.start(now); osc.stop(now + 0.15);
+        } catch(e) {}
+    }
+
+    function playVictoryChime() {
+        initAudio();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, index) => {
+            setTimeout(() => playAudioTone(freq, 0.4), index * 200);
+        });
+    }
+
+    function triggerRedStampT2() {
+        playStampSound();
+        const stamp = document.getElementById('red-stamp-t2');
+        if (stamp) stamp.style.display = 'inline-block';
+    }
+
+    function triggerGoldStampT2() {
+        playStampSound();
+        const stamp = document.getElementById('gold-stamp-t2');
+        if (stamp) stamp.style.display = 'inline-block';
+    }
+
+    function issueCertiT2() {
+        playVictoryChime();
+        const input = document.getElementById('kipse-t2-input');
+        const name = input ? input.value : "Kíp Trực Bác Sĩ Cộng Đồng";
+        const title = document.getElementById('certi-t2-title');
+        if (title) title.innerText = `CHỨNG NHẬN BÁC SĨ CỘNG ĐỒNG: ${name.toUpperCase()}`;
+    }
+
+    // MODAL DIALOG CONTROLS
+    function openPatientModal(icon, name, desc) {
+        playStampSound();
+        document.getElementById('modal-patient-icon').innerText = icon;
+        document.getElementById('modal-patient-name').innerText = name;
+        document.getElementById('modal-patient-desc').innerText = desc;
+        document.getElementById('patient-modal').style.display = 'flex';
+    }
+
+    function closePatientModal() {
+        playAudioTone(800, 0.05);
+        document.getElementById('patient-modal').style.display = 'none';
+    }
+
+    // GAME CHOICE LOGIC
+    function selectT2Choice(el, choice) {
+        playAudioTone(1000, 0.05);
+        const parent = el.parentElement;
+        parent.querySelectorAll('.game-hitbox-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    // HIGHLIGHT TOKEN LOGIC
+    function toggleToken(el) {
+        playAudioTone(1200, 0.05);
+        el.classList.toggle('highlighted');
+    }
+
+    // TIMER LOGIC
+    function startTimer(slideNum, totalSeconds) {
+        if (timerInterval) clearInterval(timerInterval);
+        let remain = totalSeconds;
+        const displayEl = document.getElementById(`timer-val-${slideNum}`);
+        if (!displayEl) return;
+
+        const updateDisp = () => {
+            const m = Math.floor(remain / 60);
+            const s = remain % 60;
+            displayEl.innerText = m > 0 ? `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${s}s`;
+            if (remain <= 3) playAudioTone(900, 0.08);
+        };
+
+        updateDisp();
+        timerInterval = setInterval(() => {
+            remain--;
+            if (remain <= 0) {
+                clearInterval(timerInterval);
+                updateDisp();
+            } else {
+                updateDisp();
+            }
+        }, 1000);
+    }
+
+    // GAME CHECKS
+    function checkAnswerT2Slide4() {
+        playAudioTone(800, 0.3);
+        setTimeout(() => goToSlide(4), 500); // Direct to Slide 5
+    }
+
+    function checkAnswerT2Slide8() {
+        playAudioTone(800, 0.3);
+        setTimeout(() => goToSlide(8), 500); // Direct to Slide 9
+    }
+
+    // SVG TAP TO CONNECT
+    let activeSvgConnections = [];
+    let selectedLeftNode = null;
+
+    function handleSvgTap(id) {
+        playAudioTone(1000, 0.05);
+        if (id.startsWith('left-')) {
+            document.querySelectorAll('#col-left .node-item').forEach(n => n.classList.remove('active-node'));
+            document.getElementById(id).classList.add('active-node');
+            selectedLeftNode = id;
+        } else if (id.startsWith('right-') && selectedLeftNode) {
+            activeSvgConnections = activeSvgConnections.filter(c => c.from !== selectedLeftNode);
+            activeSvgConnections.push({ from: selectedLeftNode, to: id });
+            document.querySelectorAll('#col-left .node-item').forEach(n => n.classList.remove('active-node'));
+            selectedLeftNode = null;
+            redrawSvgLines();
+        }
+    }
+
+    function redrawSvgLines() {
+        const svg = document.getElementById('svg-canvas');
+        if (!svg) return;
+        svg.innerHTML = '';
+        const rect = svg.getBoundingClientRect();
+
+        activeSvgConnections.forEach(conn => {
+            const el1 = document.getElementById(conn.from);
+            const el2 = document.getElementById(conn.to);
+            if (el1 && el2) {
+                const r1 = el1.getBoundingClientRect();
+                const r2 = el2.getBoundingClientRect();
+                const x1 = r1.right - rect.left;
+                const y1 = r1.top + r1.height / 2 - rect.top;
+                const x2 = r2.left - rect.left;
+                const y2 = r2.top + r2.height / 2 - rect.top;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', '#00a896');
+                line.setAttribute('stroke-width', '4');
+                line.setAttribute('stroke-dasharray', '6');
+                svg.appendChild(line);
+            }
+        });
+    }
+
+    window.addEventListener('resize', redrawSvgLines);
+
+    function checkAnswerT2Slide12() {
+        playAudioTone(1400, 0.3);
+        setTimeout(() => goToSlide(12), 500); // Direct to Slide 13
+    }
+
+    // INIT APP
+    window.onload = () => {
+        renderSlides();
+        goToSlide(0);
+    };
+</script>
+
+</body>
+</html>

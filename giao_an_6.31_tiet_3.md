@@ -8,7 +8,7 @@ MỤC TIÊU BÀI HỌC
 - Nhớ phác đồ sơ cứu vết xước, bỏng, chảy máu cam.
 - Phát hiện lỗi sai thông tin và hình vẽ trên cẩm nang sơ cứu.
 - Hiểu tâm lý các nhóm đối tượng người nghe để lên chiến dịch truyền thông phù hợp.
-2. Kỹ Năng
+2. Kỹ năng
 - Có kỹ năng đánh giá tính chính xác của tài liệu sơ cứu, phát hiện lỗi sai lệch thông tin y khoa.
 - Có kỹ năng thuyết trình thuyết phục người nghe thay đổi các thói quen sơ cứu sai lầm.
 - Có kỹ năng hợp tác, lắng nghe và phản biện tích cực trong hoạt động nhóm.
@@ -32,9 +32,8 @@ KHỞI ĐỘNG
 Trò chơi: Mở khóa giấy phép phát thanh (10 phút)
 Mục đích - Tạo không khí vui vẻ, hào hứng, ôn tập kiến thức sơ cứu cốt lõi trước khi nhận nhiệm vụ truyền thông.
 CHỦ ĐỀ: Kỹ năng sơ cứu vết thương nhẹ - Tiết 3: Chuyên gia tuyên truyền sức khỏe
-Cách thực 
-hiện
- Cách chơi:
+Cách thực hiện:
+- Cách chơi:
 - GV hướng dẫn trò chơi: Để mở khóa giấy phép phát thanh, các kíp trực cần thảo luận chọn và ghép nối các mảnh ghép thông điệp sơ cứu chuẩn y khoa trên slide.
 - Thẻ 1: Rửa trôi đất cát liên tục 3-5 phút dưới vòi nước chảy.
 - Thẻ 2: Làm mát vùng da bị bỏng dưới vòi nước sạch 15-20 phút.
@@ -56,8 +55,7 @@ Chuẩn bị
 - Phiếu thẩm định thông điệp y tế.
 - Slide bài học (tích hợp âm thanh báo động, còi hú).
 CHỦ ĐỀ: Kỹ năng sơ cứu vết thương nhẹ - Tiết 3: Chuyên gia tuyên truyền sức khỏe
-Cách thực 
-hiện
+Cách thực hiện:
 - GV hướng dẫn HS chia nhóm 4 chuyên gia truyền thông.
 - GV giới thiệu dụng cụ và quy trình thực hiện gồm 3 bước:
   - Bước 1: Rà soát lại các kiến thức cốt lõi.
@@ -95,8 +93,7 @@ Chuẩn bị
 - Poster nhóm đã hoàn thiện.
 - Slide trình chiếu (tích hợp đồng hồ đếm ngược, tiếng vỗ tay).
 CHỦ ĐỀ: Kỹ năng sơ cứu vết thương nhẹ - Tiết 3: Chuyên gia tuyên truyền sức khỏe
-Cách thực 
-hiện
+Cách thực hiện:
 - GV hướng dẫn học sinh cách làm:
 - Các nhóm tiến hành diễn tập nhanh trong vòng 8 phút.
 - Phân chia vai trò người cầm poster, người thuyết trình, người tương tác.
@@ -117,8 +114,7 @@ hiện
 GHI NHỚ - CHIA SẺ (5 phút)
 Mục đích - Tổng kết lại bài học, ký cam kết hành động y khoa và vinh danh kíp trực truyền thông xuất sắc.
 CHỦ ĐỀ: Kỹ năng sơ cứu vết thương nhẹ - Tiết 3: Chuyên gia tuyên truyền sức khỏe
-Cách tiến 
-hành
+Cách tiến hành:
 - GV hướng dẫn học sinh đọc to và tích chọn các điều khoản trên "Bản cam kết hành động" (Lời thề y khoa) trên slide tương tác.
 - Đại diện lớp ký tên và bấm nút "CAM KẾT" để kích hoạt tiếng đóng dấu đỏ.
 - GV nhập tên kíp trực xuất sắc đạt giải lên bằng khen trên slide để kích hoạt pháo hoa confetti rơi rực rỡ kèm tiếng vỗ tay chúc mừng.
